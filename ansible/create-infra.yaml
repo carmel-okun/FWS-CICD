@@ -1,0 +1,80 @@
+---
+- name: creates the cloud infra
+  hosts: app
+  tasks:
+    - name: ?????????????????????????????????????????
+
+- name: Setup web server
+  hosts: app
+  user: centos
+  become: True
+  gather_facts: True
+  vars_files:
+    - group_vars/env
+    - group_vars/colman.env
+    - group_vars/docker.env
+  tasks:
+    - name: install necessary packages
+      ansible.builtin.yum:
+        name:
+          - epel-release
+          - git
+          - python-pip
+          - yum-utils
+        state: present
+
+      - name: add docker repo
+        shell: "yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo"
+        become: yes
+        become_user: root
+
+      - name: install all docker packages
+      ansible.builtin.yum:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-compose
+        state: present
+
+    - name: start Docker
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Set authorized key taken from file
+      ansible.posix.authorized_key:
+        user: centos
+        state: present
+        key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+
+   - name: Clone app repo
+     ansible.builtin.git:
+       repo: https://github.com/carmel-okun/FWS-CICD.git
+       dest: /home/centos/
+       clone: yes
+       update: yes
+
+   # - name: Build docker image and push to DockerHub
+   #   community.docker.docker_image:
+   #     build:
+   #       path: .
+   #     name: registry.ansible.com/chouseknecht/sinatra
+   #     tag: v1
+   #     push: true
+   #     source: build
+
+   - name: Build docker image
+     community.docker.docker_image_build:
+       name: name_generator_image
+       path: /home/centos/images/name_generator
+       dockerfile: .
+
+  - name: start docker app
+    docker_container:
+      name: name_generator_container
+      image: name_generator_image
+      state: present
+      exposed_ports:
+        - 8888
