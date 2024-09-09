@@ -1,11 +1,11 @@
 ---
-- name: creates the cloud infra
-  hosts: all
-  tasks:
-    - name: ?????????????????????????????????????????
+#- name: creates the cloud infra
+#  hosts: all
+#  tasks:
+#    - name: ?????????????????????????????????????????
 
 - name: Setup web server
-  hosts: app
+  hosts: app-server
   user: centos
   become: True
   gather_facts: True
@@ -23,12 +23,12 @@
           - yum-utils
         state: present
 
-      - name: add docker repo
-        shell: "yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo"
-        become: yes
-        become_user: root
+    - name: add docker repo
+      shell: "yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo"
+      become: yes
+      become_user: root
 
-      - name: install all docker packages
+    - name: install all docker packages
       ansible.builtin.yum:
         name:
           - docker-ce
@@ -43,18 +43,18 @@
         state: started
         enabled: yes
 
-    - name: Set authorized key taken from file
+    - name: copy ssh key
       ansible.posix.authorized_key:
         user: centos
         state: present
         key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
 
-   - name: Clone app repo
-     ansible.builtin.git:
-       repo: https://github.com/carmel-okun/FWS-CICD.git
-       dest: /home/centos/
-       clone: yes
-       update: yes
+    - name: Clone app repo
+      ansible.builtin.git:
+        repo: https://github.com/carmel-okun/FWS-CICD.git
+        dest: /home/centos/
+        clone: yes
+        update: yes
 
    # - name: Build docker image and push to DockerHub
    #   community.docker.docker_image:
@@ -65,16 +65,16 @@
    #     push: true
    #     source: build
 
-   - name: Build docker image
-     community.docker.docker_image_build:
-       name: name_generator_image
-       path: /home/centos/images/name_generator
-       dockerfile: .
+    - name: Build docker image
+      community.docker.docker_image_build:
+        name: name_generator_image
+        path: /home/centos/images/name_generator
+        dockerfile: ~/FWS-CICD/src/
 
-  - name: start docker app
-    docker_container:
-      name: name_generator_container
-      image: name_generator_image
-      state: present
-      exposed_ports:
-        - 8888
+    - name: start docker app
+      docker_container:
+        name: name_generator_container
+        image: name_generator_image
+        state: started
+        exposed_ports:
+          - 8888
