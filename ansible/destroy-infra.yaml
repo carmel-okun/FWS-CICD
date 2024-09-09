@@ -1,0 +1,5 @@
+---
+- name: destroys the cloud infra
+  hosts: all
+  tasks:
+    - name: 
