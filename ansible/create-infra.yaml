@@ -5,10 +5,13 @@
 #    - name: ?????????????????????????????????????????
 
 - name: Setup web server
-  hosts: app-server
+  hosts: localhost
   user: centos
   become: True
   gather_facts: True
+  vars:
+    # ansible_ssh_user=centos
+    ansible_ssh_private_key_file: ./carmel-keypem.pem
   vars_files:
     - group_vars/env
     - group_vars/colman.env
@@ -17,7 +20,7 @@
     - name: install necessary packages
       ansible.builtin.yum:
         name:
-          - epel-release
+          #- epel-release
           - git
           - python-pip
           - yum-utils
@@ -28,14 +31,14 @@
       become: yes
       become_user: root
 
-    - name: install all docker packages
-      ansible.builtin.yum:
-        name:
-          - docker-ce
-          - docker-ce-cli
-          - containerd.io
-          - docker-compose
-        state: present
+    #- name: install all docker packages
+      #ansible.builtin.yum:
+        #name:
+          #- docker-ce
+          #- docker-ce-cli
+          #- containerd.io
+          #- docker-compose
+        #state: present
 
     - name: start Docker
       ansible.builtin.service:
@@ -43,16 +46,16 @@
         state: started
         enabled: yes
 
-    - name: copy ssh key
-      ansible.posix.authorized_key:
-        user: centos
-        state: present
-        key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+    #- name: copy ssh key
+      #ansible.posix.authorized_key:
+      # user: centos
+      # state: present
+      # key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
 
     - name: Clone app repo
       ansible.builtin.git:
         repo: https://github.com/carmel-okun/FWS-CICD.git
-        dest: /home/centos/
+        dest: ~/repoes/
         clone: yes
         update: yes
 
@@ -68,8 +71,8 @@
     - name: Build docker image
       community.docker.docker_image_build:
         name: name_generator_image
-        path: /home/centos/images/name_generator
-        dockerfile: ~/FWS-CICD/src/
+        path: ~/images/
+        dockerfile: /home/ec2-user/FWS-CICD/src/Dockerfile
 
     - name: start docker app
       docker_container:
