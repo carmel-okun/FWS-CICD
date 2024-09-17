@@ -10,7 +10,7 @@ pipeline {
         stage('update app') {
             steps {
                 sh "pwd"
-                sh "cd ./src/"
+                sh "cd /var/lib/jenkins/workspace/CICD-FWS/src/"
                 sh "docker-compose up -d"
             }
         }
