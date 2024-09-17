@@ -10,7 +10,7 @@ pipeline {
         stage('update app') {
             steps {
                 sh "whoami"
-                sh "docker-compose up -d"
+                sh "sudo docker-compose up -d"
             }
         }
     }
