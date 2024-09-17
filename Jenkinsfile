@@ -11,6 +11,7 @@ pipeline {
             steps {
                 sh "pwd"
                 sh "cd /var/lib/jenkins/workspace/CICD-FWS/src/"
+                sh "ls -l"
                 sh "docker-compose up -d"
             }
         }
