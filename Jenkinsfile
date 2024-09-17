@@ -10,7 +10,6 @@ pipeline {
         stage('update app') {
             steps {
                 sh "groups"
-                # sh "docker-compose up -d"
             }
         }
     }
