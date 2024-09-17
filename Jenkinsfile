@@ -9,6 +9,8 @@ pipeline {
         }
         stage('update app') {
             steps {
+                sh "docker stop carmel-nginx"
+                sh "docker rm carmel-nginx"
                 sh "docker-compose up -d"
             }
         }
