@@ -9,7 +9,7 @@ pipeline {
         }
         stage('update app') {
             steps {
-                echo pwd
+                sh "pwd"
                 sh "cd ./src/"
                 sh "docker-compose up -d"
             }
