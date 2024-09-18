@@ -1,19 +1,30 @@
 - name: creates the cloud infra
-#  hosts: all
-#  tasks:
-#    - name: ?????????????????????????????????????????
-
-- name: Setup web server
   hosts: localhost
-  user: centos
-  become: True
-  gather_facts: True
-  vars:
-    # ansible_ssh_user=centos
-    ansible_ssh_private_key_file: ./carmel-keypem.pem
-  vars_files:
-    - group_vars/env
-    - group_vars/colman.env
-    - group_vars/docker.env
+  gather_facts: False
   tasks:
-    - name: install necessary packages
+    - name: start an instance with a public IP address
+      amazon.aws.ec2_instance:
+        name: "carmels-app"
+        key_name: "carmel-keypem"
+        region: "us-east-1"
+        vpc_subnet_id: "subnet-0f748f67d5a99439f"
+        instance_type: "t2.micro"
+        security_group: "carmel-SG"
+        network_interfaces:
+          - assign_public_ip: true
+        image_id: "ami-0e86e20dae9224db8"
+
+#- name: Setup web server
+#  hosts: localhost
+#  user: centos
+#  become: True
+#  gather_facts: True
+#  vars:
+#     ansible_ssh_user=centos
+#     ansible_ssh_private_key_file: ./carmel-keypem.pem
+#  vars_files:
+#    - group_vars/env
+#    - group_vars/colman.env
+#    - group_vars/docker.env
+#  tasks:
+#    - name: install necessary packages
