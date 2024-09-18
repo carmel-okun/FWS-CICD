@@ -1,83 +1,51 @@
----
-#- name: creates the cloud infra
-#  hosts: all
-#  tasks:
-#    - name: ?????????????????????????????????????????
+- name: creates the cloud infra
+  hosts: localhost
+  gather_facts: False
+  tasks:
+    - name: Create EC2 instance
+      amazon.aws.ec2_instance:
+        key_name: carmel-keypem
+        instance_type: t2.micro
+        image_id: ami-0e86e20dae9224db8 
+        wait: yes
+        region: us-east-1
+        count: 1
+        network_interfaces:
+          - assign_public_ip: true
+        vpc_subnet_id: subnet-0f748f67d5a99439f
+        security_groups:
+          - sg-0dcf9dad4dc751acb
+        tags:
+          Name: carmels-app
+        user_data: |
+          #!/bin/bash
+          useradd -m -s /bin/bash centos
+          usermod -aG sudo centos
+          mkdir /home/centos/.ssh
+          chmod 700 /home/centos/.ssh
+          echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCnn0ENe1E3nEaz41qQT7o1Mw36KeEtk2nMgKWcUmxm8fpLiHiJcu+VYyfAm2B/WiDzrXHT5kDd21ncd4wfu9oVVGQefFTJ0iT7QwpS/OpG1LeqnbvpfdngWUGSe+PHFdTF4/nfwhbLrj+YiKlwg++YWaz/PVYlOXqXZlcCa7ly7fSIz+XP2OiQ64HePRunDkAZ2pFx0D+3ptE/3AzBLzz3RYP+mCvKr/R1kXtMDyQaG5sV4XwGA9AK6bPgrQziZnEUcZQpzcwtkQHYqvhLv4jF74diLfoNWvK2ytbUxb7lvZUqMm5Y2pqU343aap7HItprUa7HECmROTbq3p4brT/B carmel-keypem" >> /home/centos/.ssh/authorized_keys
+          chmod 600 /home/centos/.ssh/authorized_keys
+          chown -R centos:centos /home/centos
+          echo "centos ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+        state: present
+      register: ec2
+
+    - name: Add new instance to host group
+      add_host:
+        hostname: "{{ item.network_interfaces[0].association.public_ip }}"
+        groupname: app-server
+      with_items: "{{ ec2.instances }}"
+
+    - name: Pause for 30 seconds to ensure the instance is fully up
+      ansible.builtin.pause:
+        seconds: 30
 
 - name: Setup web server
-  hosts: localhost
+  hosts: app-server
   user: centos
   become: True
   gather_facts: True
-  vars:
-    # ansible_ssh_user=centos
-    ansible_ssh_private_key_file: ./carmel-keypem.pem
-  vars_files:
-    - group_vars/env
-    - group_vars/colman.env
-    - group_vars/docker.env
   tasks:
     - name: install necessary packages
-      ansible.builtin.yum:
-        name:
-          #- epel-release
-          - git
-          - python-pip
-          - yum-utils
-        state: present
-
-    - name: add docker repo
-      shell: "yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo"
-      become: yes
-      become_user: root
-
-    #- name: install all docker packages
-      #ansible.builtin.yum:
-        #name:
-          #- docker-ce
-          #- docker-ce-cli
-          #- containerd.io
-          #- docker-compose
-        #state: present
-
-    - name: start Docker
-      ansible.builtin.service:
-        name: docker
-        state: started
-        enabled: yes
-
-    #- name: copy ssh key
-      #ansible.posix.authorized_key:
-      # user: centos
-      # state: present
-      # key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
-
-    - name: Clone app repo
-      ansible.builtin.git:
-        repo: https://github.com/carmel-okun/FWS-CICD.git
-        dest: ~/repoes/
-        clone: yes
-        update: yes
-
-   # - name: Build docker image and push to DockerHub
-   #   community.docker.docker_image:
-   #     build:
-   #       path: .
-   #     name: registry.ansible.com/chouseknecht/sinatra
-   #     tag: v1
-   #     push: true
-   #     source: build
-
-    - name: Build docker image
-      community.docker.docker_image_build:
-        name: name_generator_image
-        path: ~/images/
-        dockerfile: /home/ec2-user/FWS-CICD/src/Dockerfile
-
-    - name: start docker app
-      docker_container:
-        name: name_generator_container
-        image: name_generator_image
-        state: started
-        exposed_ports:
-          - 8888
+      ansible.builtin.debug:
+        var: ansible_facts
