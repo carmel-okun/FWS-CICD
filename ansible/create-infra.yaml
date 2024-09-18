@@ -17,6 +17,16 @@
           - sg-0dcf9dad4dc751acb
         tags:
           Name: carmels-app
+        user_data: |
+          #!/bin/bash
+          useradd -m -s /bin/bash centos
+          usermod -aG sudo centos
+          mkdir /home/centos/.ssh
+          chmod 700 /home/centos/.ssh
+          echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCnn0ENe1E3nEaz41qQT7o1Mw36KeEtk2nMgKWcUmxm8fpLiHiJcu+VYyfAm2B/WiDzrXHT5kDd21ncd4wfu9oVVGQefFTJ0iT7QwpS/OpG1LeqnbvpfdngWUGSe+PHFdTF4/nfwhbLrj+YiKlwg++YWaz/PVYlOXqXZlcCa7ly7fSIz+XP2OiQ64HePRunDkAZ2pFx0D+3ptE/3AzBLzz3RYP+mCvKr/R1kXtMDyQaG5sV4XwGA9AK6bPgrQziZnEUcZQpzcwtkQHYqvhLv4jF74diLfoNWvK2ytbUxb7lvZUqMm5Y2pqU343aap7HItprUa7HECmROTbq3p4brT/B carmel-keypem" >> /home/centos/.ssh/authorized_keys
+          chmod 600 /home/centos/.ssh/authorized_keys
+          chown -R centos:centos /home/centos
+          echo "centos ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
         state: present
       register: ec2
 
@@ -26,17 +36,16 @@
         groupname: app-server
       with_items: "{{ ec2.instances }}"
 
-#- name: Setup web server
-#  hosts: localhost
-#  user: centos
-#  become: True
-#  gather_facts: True
-#  vars:
-#     ansible_ssh_user=centos
-#     ansible_ssh_private_key_file: ./carmel-keypem.pem
-#  vars_files:
-#    - group_vars/env
-#    - group_vars/colman.env
-#    - group_vars/docker.env
-#  tasks:
-#    - name: install necessary packages
+    - name: Pause for 30 seconds to ensure the instance is fully up
+      ansible.builtin.pause:
+        seconds: 30
+
+- name: Setup web server
+  hosts: app-server
+  user: centos
+  become: True
+  gather_facts: True
+  tasks:
+    - name: install necessary packages
+      ansible.builtin.debug:
+        var: ansible_facts
