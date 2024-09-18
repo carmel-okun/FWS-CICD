@@ -2,7 +2,7 @@
 
 ## installing Ansible
 ### source: https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html
-## source: https://docs.ansible.com/ansible/latest/installation_guide/installation_distros.html#installing-ansible-on-ubuntu
+### source: https://docs.ansible.com/ansible/latest/installation_guide/installation_distros.html#installing-ansible-on-ubuntu
 
 sudo apt update
 sudo apt install software-properties-common
