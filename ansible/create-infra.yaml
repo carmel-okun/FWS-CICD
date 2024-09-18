@@ -2,17 +2,22 @@
   hosts: localhost
   gather_facts: False
   tasks:
-    - name: start an instance with a public IP address
+    - name: Create EC2 instance
       amazon.aws.ec2_instance:
-        name: "carmels-app"
-        key_name: "carmel-keypem"
-        region: "us-east-1"
-        vpc_subnet_id: "subnet-0f748f67d5a99439f"
-        instance_type: "t2.micro"
-        security_group: "carmel-SG"
+        key_name: carmel-keypem
+        instance_type: t2.micro
+        image_id: ami-0e86e20dae9224db8 
+        wait: yes
+        region: us-east-1
+        count: 1
         network_interfaces:
           - assign_public_ip: true
-        image_id: "ami-0e86e20dae9224db8"
+        vpc_subnet_id: subnet-0f748f67d5a99439f
+        security_groups:
+          - sg-0dcf9dad4dc751acb
+        tags:
+          Name: carmels-app
+      register: ec2
 
 #- name: Setup web server
 #  hosts: localhost
