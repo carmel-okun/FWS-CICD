@@ -17,6 +17,7 @@
           - sg-0dcf9dad4dc751acb
         tags:
           Name: carmels-app
+        state: present
       register: ec2
 
 #- name: Setup web server
