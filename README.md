@@ -47,6 +47,7 @@ aws configure
 give control node instance AmazonEC2FullAccess iam role
 
 ## installing docker
+### source: https://docs.docker.com/engine/install/ubuntu/
 
 for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc; do sudo apt-get remove $pkg; done
 
